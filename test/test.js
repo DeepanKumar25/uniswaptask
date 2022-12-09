@@ -1,4 +1,3 @@
-const helpers = require("@nomicfoundation/hardhat-network-helpers");
 const { loadFixture } = require("@nomicfoundation/hardhat-network-helpers")
 const { expect } = require("chai");
 const { ethers } = require("hardhat");
@@ -18,6 +17,35 @@ describe("Liquidity", function () {
     await liquidity.deployed()
     return {token1,token2,liquidity,deployer}
   }
+
+  
+  it("token1 should be able to mint",async()=>{
+    const {token1,token2,deployer} = await loadFixture(deploy)
+    const amount = ethers.utils.parseEther("1")
+    const abletomint = await token1.mint(deployer.address,amount)
+    await abletomint.wait()
+    expect(token1.balanceOf(deployer.address), 11000000000000000000)
+  })
+
+  it("token2 should be able to mint",async()=>{
+    const {token1,token2,deployer} = await loadFixture(deploy)
+    const amount = ethers.utils.parseEther("1")
+    const abletomint = await token2.mint(deployer.address,amount)
+    await abletomint.wait()
+    expect(token2.balanceOf(deployer.address), 1501000000000000000000)
+  })
+
+  it("token1 should revert if contract calls mint fn",async()=>{
+    const {token1,token2,deployer} = await loadFixture(deploy)
+    const amount = ethers.utils.parseEther("1")
+    expect(token1.mint(token1.address,amount)).to.be.reverted;
+  })
+
+  it("token2 should revert if contract calls mint fn",async()=>{
+    const {token1,token2,deployer} = await loadFixture(deploy)
+    const amount = ethers.utils.parseEther("1")
+    expect(token2.mint(token2.address,amount)).to.be.reverted;
+  })
 
   it("should approve liquidity contract", async () => {
     const{token1,token2,liquidity,deployer} = await loadFixture(deploy)
@@ -45,7 +73,7 @@ describe("Liquidity", function () {
     const amount2 = ethers.utils.parseEther("150")
     const letsapprove2 = await token2.approve(liquidity.address,amount2)
     await letsapprove2.wait()
-    const tx = await liquidity._addLiquidity(token1.address, token2.address,amount,amount2);
+    const tx = await liquidity.addLiquidity(token1.address, token2.address,amount,amount2);
     await tx.wait();
     const events = await liquidity.queryFilter("Log", 14390010, 14390020);
     //console.log(events);
@@ -62,7 +90,7 @@ describe("Liquidity", function () {
     const amount2 = ethers.utils.parseEther("150")
     const letsapprove2 = await token2.approve(liquidity.address,amount2)
     await letsapprove2.wait()
-    const tx = await liquidity._addLiquidity(token1.address, token2.address,amount,amount2);
+    const tx = await liquidity.addLiquidity(token1.address, token2.address,amount,amount2);
     await tx.wait();
     const tx2 = await liquidity.removeLiquidity(token1.address, token2.address)
     await tx2.wait();
